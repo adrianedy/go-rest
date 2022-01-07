@@ -73,7 +73,25 @@ type Movie struct {
 }
 
 func Read(w http.ResponseWriter, r *http.Request) {
-	limitQuery := r.URL.Query().Get("limit")
+	var filter bson.D
+	queryString := r.URL.Query()
+	rated := queryString.Get("rated")
+	countries := queryString["countries[]"]
+	languages := queryString["languages[]"]
+
+	if rated != "" {
+		filter = append(filter, primitive.E{Key: "rated", Value: rated})
+	}
+
+	if len(countries) > 0 {
+		filter = append(filter, primitive.E{Key: "countries", Value: countries})
+	}
+
+	if len(languages) > 0 {
+		filter = append(filter, primitive.E{Key: "languages", Value: languages})
+	}
+
+	limitQuery := queryString.Get("limit")
 	if limitQuery == "" {
 		limitQuery = "10"
 	}
@@ -84,7 +102,7 @@ func Read(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var results []Movie
-	cur, _ := database.Collection(collectionName).Find(context.TODO(), bson.M{}, &opts)
+	cur, _ := database.Collection(collectionName).Find(context.TODO(), filter, &opts)
 
 	for cur.Next(context.TODO()) {
 		var movie Movie
