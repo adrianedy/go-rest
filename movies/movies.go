@@ -73,7 +73,7 @@ type Movie struct {
 }
 
 func Read(w http.ResponseWriter, r *http.Request) {
-	var filter bson.D
+	filter := make(bson.D, 0)
 	queryString := r.URL.Query()
 	rated := queryString.Get("rated")
 	countries := queryString["countries[]"]
